@@ -1,15 +1,17 @@
 
-import { useState } from 'react';
-import { Bell, Calendar, ListTodo, Menu, Plus, Search, User, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { Bell, Calendar, ListTodo, Menu, Plus, Search, User, X, Settings, LogOut } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Link } from 'react-router-dom';
+} from "@/components/ui/dropdown-menu";
+import { Link, useNavigate } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/components/ui/use-toast";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -18,9 +20,41 @@ interface HeaderProps {
 
 export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
   const [showSearch, setShowSearch] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Check if user is logged in
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully",
+    });
+    
+    setUser(null);
+    navigate("/login");
+  };
+
+  const getUserInitials = () => {
+    if (!user) return "U";
+    if (user.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    return user.email.charAt(0).toUpperCase();
+  };
 
   return (
-    <header className="sticky top-0 w-full bg-white border-b border-border z-10">
+    <header className="fixed top-0 w-full bg-white border-b border-border z-30">
       <div className="h-16 px-4 flex items-center justify-between">
         <div className="flex items-center">
           <Button
@@ -38,7 +72,7 @@ export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
 
           <div className="hidden md:flex space-x-1">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/">
+              <Link to="/tasks">
                 <ListTodo className="h-4 w-4 mr-2" />
                 Tasks
               </Link>
@@ -101,21 +135,45 @@ export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
+                {user && user.avatarUrl ? (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatarUrl} alt={user.name || "User"} />
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <User className="h-5 w-5" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to="/login">Login</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/register">Register</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              {user ? (
+                <>
+                  <div className="px-2 py-1.5 text-sm font-medium">
+                    {user.name || user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/login">Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/register">Register</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

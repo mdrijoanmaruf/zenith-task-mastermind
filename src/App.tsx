@@ -13,6 +13,12 @@ import CalendarPage from "@/pages/CalendarPage";
 import NotFound from "@/pages/NotFound";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import ProfilePage from "@/pages/ProfilePage";
+import SettingsPage from "@/pages/SettingsPage";
+import TodayTasksPage from "@/pages/TodayTasksPage";
+import UpcomingTasksPage from "@/pages/UpcomingTasksPage";
+import TagsPage from "@/pages/TagsPage";
+import TagViewPage from "@/pages/TagViewPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +37,12 @@ const App = () => (
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/today" element={<TodayTasksPage />} />
+              <Route path="/upcoming" element={<UpcomingTasksPage />} />
+              <Route path="/tags" element={<TagsPage />} />
+              <Route path="/tags/:id" element={<TagViewPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

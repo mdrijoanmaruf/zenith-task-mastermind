@@ -25,7 +25,7 @@ export function Layout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-      <div className="flex flex-1">
+      <div className="flex flex-1 pt-16"> {/* Added pt-16 to prevent overlap with header */}
         <Sidebar isOpen={isSidebarOpen} />
         <div 
           className={cn(
