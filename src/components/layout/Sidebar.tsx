@@ -1,4 +1,3 @@
-
 import { Home, Calendar, ListTodo, Tag, Clock, Settings, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -28,8 +27,8 @@ export function Sidebar({ isOpen }: SidebarProps) {
       isOpen ? "translate-x-0" : "-translate-x-full"
     )}>
       <ScrollArea className="h-full">
-        <div className="p-4">
-          <div className="mb-8 mt-4">
+        <div className="p-4 pt-[100px]">
+          <div className="mb-8">
             <Button asChild variant="default" className="w-full">
               <Link to="/new-task">
                 <Plus className="mr-2 h-4 w-4" />

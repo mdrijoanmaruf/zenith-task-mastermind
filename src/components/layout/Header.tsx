@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Bell, Calendar, ListTodo, Menu, Plus, Search, User, X, Settings, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/context/ThemeContext";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -23,6 +24,7 @@ export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   // Check if user is logged in
   useEffect(() => {
@@ -54,7 +56,10 @@ export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
   };
 
   return (
-    <header className="fixed top-0 w-full bg-white border-b border-border z-30">
+    <header className={cn(
+      "fixed top-0 w-full border-b border-border z-30",
+      "bg-background text-foreground"
+    )}>
       <div className="h-16 px-4 flex items-center justify-between">
         <div className="flex items-center">
           <Button
@@ -93,7 +98,7 @@ export function Header({ toggleSidebar, isSidebarOpen }: HeaderProps) {
               <input
                 type="search"
                 placeholder="Search tasks..."
-                className="w-full rounded-md border border-input bg-white px-3 py-2 pl-8 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 autoFocus
                 onBlur={() => setShowSearch(false)}
               />

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,8 +20,18 @@ import TodayTasksPage from "@/pages/TodayTasksPage";
 import UpcomingTasksPage from "@/pages/UpcomingTasksPage";
 import TagsPage from "@/pages/TagsPage";
 import TagViewPage from "@/pages/TagViewPage";
+import { useEffect } from "react";
+import { getAuth } from "firebase/auth";
 
 const queryClient = new QueryClient();
+
+// Check if Firebase is initialized properly
+try {
+  const auth = getAuth();
+  console.log("Firebase Auth initialized successfully");
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+}
 
 const App = () => (
   <FirebaseProvider>
@@ -32,7 +41,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter basename="/">
               <Routes>
                 <Route element={<Layout />}>
                   <Route path="/" element={<Dashboard />} />
