@@ -11,6 +11,8 @@ import TasksPage from "@/pages/TasksPage";
 import NewTaskPage from "@/pages/NewTaskPage";
 import CalendarPage from "@/pages/CalendarPage";
 import NotFound from "@/pages/NotFound";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +29,8 @@ const App = () => (
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/new-task" element={<NewTaskPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
-              {/* Add more routes here */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
