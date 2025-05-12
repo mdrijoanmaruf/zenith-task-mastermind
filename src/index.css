@@ -97,7 +97,7 @@
 
 @layer components {
   .task-card {
-    @apply flex flex-col gap-3 p-4 bg-white rounded-lg border border-border shadow-sm transition-all hover:shadow-md;
+    @apply flex flex-col gap-3 p-4 bg-white dark:bg-card rounded-lg border border-border shadow-sm transition-all hover:shadow-md;
   }
   
   .priority-indicator {

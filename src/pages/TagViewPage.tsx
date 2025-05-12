@@ -3,91 +3,59 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useTaskContext } from "@/context/TaskContext";
 import { TaskList } from "@/components/task/TaskList";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Tag, ArrowLeft } from "lucide-react";
+import { Tag } from "lucide-react";
+import { TaskTag } from "@/types/task";
 
 export default function TagViewPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const { tasks, tags } = useTaskContext();
-  const [tag, setTag] = useState<any>(null);
   const [taggedTasks, setTaggedTasks] = useState([]);
-
+  const [currentTag, setCurrentTag] = useState<TaskTag | null>(null);
+  
   useEffect(() => {
-    if (id) {
-      const foundTag = tags.find(t => t.id === id);
-      setTag(foundTag);
-
-      if (foundTag) {
-        const filtered = tasks.filter(task => 
-          task.tags && task.tags.includes(id)
-        );
-        setTaggedTasks(filtered);
-      }
+    // Find the tag that matches the id
+    const foundTag = tags.find(tag => tag.id === id);
+    if (foundTag) {
+      setCurrentTag(foundTag);
+      
+      // Filter tasks that have this tag
+      const filtered = tasks.filter(task => 
+        task.tags.some(taskTag => taskTag.id === id)
+      );
+      
+      setTaggedTasks(filtered);
     }
   }, [id, tasks, tags]);
-
-  if (!tag) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-xl font-medium mb-2">Tag not found</h3>
-        <p className="text-muted-foreground mb-4">
-          The tag you're looking for doesn't exist or has been deleted
-        </p>
-        <Button asChild>
-          <Link to="/tags">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Tags
-          </Link>
-        </Button>
-      </div>
-    );
+  
+  if (!currentTag) {
+    return <div>Loading...</div>;
   }
-
+  
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-2 mb-4">
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/tags">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            All Tags
-          </Link>
-        </Button>
-      </div>
-
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div
-            className="h-8 w-8 rounded-full"
-            style={{ backgroundColor: tag.color }}
-          />
-          <h1 className="text-3xl font-bold">{tag.name}</h1>
-        </div>
-        <div className="text-muted-foreground">
-          {taggedTasks.length} {taggedTasks.length === 1 ? 'task' : 'tasks'}
-        </div>
+        <h1 className="text-3xl font-bold">Tasks tagged: {currentTag.name}</h1>
+        <div 
+          className="h-6 w-6 rounded-full" 
+          style={{ backgroundColor: currentTag.color }}
+        />
       </div>
-
-      <div
-        className="h-1 rounded-full"
-        style={{ backgroundColor: tag.color }}
-      />
-
+      
+      <div className="bg-accent p-4 rounded-lg">
+        <p className="text-accent-foreground">
+          You have <span className="font-bold">{taggedTasks.length}</span> tasks with this tag.
+        </p>
+      </div>
+      
       {taggedTasks.length > 0 ? (
         <TaskList tasks={taggedTasks} />
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Tag className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-xl font-medium mb-2">No tasks with this tag</h3>
-          <p className="text-muted-foreground mb-4">
-            Add this tag to tasks to see them here
+          <p className="text-muted-foreground">
+            Add some tasks with this tag to see them here
           </p>
-          <Button asChild>
-            <Link to="/new-task">
-              Create a task with this tag
-            </Link>
-          </Button>
         </div>
       )}
     </div>

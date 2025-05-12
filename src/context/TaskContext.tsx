@@ -11,7 +11,9 @@ type TaskContextType = {
   completeTask: (id: string) => void;
   tags: TaskTag[];
   addTag: (tag: Omit<TaskTag, 'id'>) => void;
+  updateTag: (id: string, tag: Partial<TaskTag>) => void;
   removeTag: (id: string) => void;
+  deleteTag: (id: string) => void;
 };
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -145,6 +147,25 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     setTags((prev) => [...prev, newTag]);
   };
 
+  const updateTag = (id: string, updatedTag: Partial<TaskTag>) => {
+    setTags((prev) =>
+      prev.map((tag) =>
+        tag.id === id ? { ...tag, ...updatedTag } : tag
+      )
+    );
+    toast.success('Tag updated successfully');
+    
+    // Also update this tag in all tasks
+    setTasks((prev) =>
+      prev.map((task) => ({
+        ...task,
+        tags: task.tags.map((tag) => 
+          tag.id === id ? { ...tag, ...updatedTag } : tag
+        ),
+      }))
+    );
+  };
+
   const removeTag = (id: string) => {
     setTags((prev) => prev.filter((tag) => tag.id !== id));
     // Also remove this tag from all tasks
@@ -154,6 +175,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         tags: task.tags.filter((tag) => tag.id !== id),
       }))
     );
+  };
+  
+  const deleteTag = (id: string) => {
+    removeTag(id);
+    toast.success('Tag deleted successfully');
   };
 
   return (
@@ -166,7 +192,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         completeTask,
         tags,
         addTag,
+        updateTag,
         removeTag,
+        deleteTag,
       }}
     >
       {children}

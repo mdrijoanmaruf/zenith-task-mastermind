@@ -7,19 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Bell, Moon, Sun } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useTheme } from "@/context/ThemeContext";
+import { useFirebase } from "@/context/FirebaseContext";
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+  const { user, logout } = useFirebase();
 
   const handleSave = () => {
     // In a real app, this would save to a backend
     localStorage.setItem("settings", JSON.stringify({
       notifications,
       emailNotifications,
-      darkMode
+      darkMode: theme === 'dark'
     }));
     
     toast({
@@ -51,8 +54,8 @@ export default function SettingsPage() {
               <div className="flex items-center space-x-2">
                 <Sun className="h-4 w-4 text-muted-foreground" />
                 <Switch
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
+                  checked={theme === 'dark'}
+                  onCheckedChange={toggleTheme}
                 />
                 <Moon className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -92,6 +95,19 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Account</h3>
             <Separator />
+            {user ? (
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Log Out</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Sign out of your account
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={logout}>
+                  Log Out
+                </Button>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Delete Account</Label>

@@ -1,224 +1,190 @@
 
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Camera, UserRound } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useFirebase } from "@/context/FirebaseContext";
+import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<{
-    email: string;
-    name?: string;
-    bio?: string;
-    avatarUrl?: string;
-  } | null>(null);
-  
+  const { user, uploadProfilePicture, getUserProfile, updateUserProfile, isLoading } = useFirebase();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [profilePicture, setProfilePicture] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem("user");
-    if (!userData) {
-      navigate("/login");
-      return;
+    async function loadUserProfile() {
+      if (user) {
+        try {
+          const profile = await getUserProfile();
+          setName(profile.name || "");
+          setBio(profile.bio || "");
+          setProfilePicture(profile.profilePicture || "");
+        } catch (error) {
+          console.error("Error loading profile:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
     }
     
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    
-    // Set form values
-    setName(parsedUser.name || "");
-    setBio(parsedUser.bio || "");
-    setAvatarUrl(parsedUser.avatarUrl || "");
-  }, [navigate]);
+    if (!isLoading) {
+      loadUserProfile();
+    }
+  }, [user, isLoading, getUserProfile]);
   
-  const handleAvatarClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploading(true);
+      try {
+        const url = await uploadProfilePicture(file);
+        setProfilePicture(url);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      } finally {
+        setUploading(false);
+      }
     }
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Validate file type and size
-    if (!file.type.match('image.*')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) { // 5MB max
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    uploadImage(file);
-  };
-  
-  const uploadImage = async (file: File) => {
-    setIsUploading(true);
-    
-    // In a real app, you would upload to a server here
-    // For this demo, we'll simulate a delay and use local storage
+  const handleUpdateProfile = async () => {
     try {
-      // Create a FileReader to read the file as a data URL
-      const reader = new FileReader();
-      
-      reader.onloadend = () => {
-        // Simulate upload delay
-        setTimeout(() => {
-          const imageUrl = reader.result as string;
-          setAvatarUrl(imageUrl);
-          setIsUploading(false);
-          toast({
-            title: "Image uploaded successfully",
-            description: "Your profile picture has been updated",
-          });
-        }, 1500);
-      };
-      
-      reader.readAsDataURL(file);
-    } catch (error) {
-      setIsUploading(false);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your image",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Update user in localStorage
-    if (user) {
-      const updatedUser = {
-        ...user,
+      await updateUserProfile({
         name,
         bio,
-        avatarUrl,
-      };
-      
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated",
       });
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
   };
   
+  if (isLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
   if (!user) {
-    return <div className="flex justify-center items-center min-h-[70vh]">Loading...</div>;
+    return (
+      <div className="max-w-2xl mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Profile</CardTitle>
+            <CardDescription>
+              Please log in to view your profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <a href="/login">Go to Login</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
   
   return (
     <div className="max-w-2xl mx-auto py-8">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Profile</CardTitle>
+          <CardTitle className="text-2xl">Your Profile</CardTitle>
           <CardDescription>
-            Manage your personal information and account settings
+            Manage your profile information
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <div 
-                className="relative cursor-pointer group" 
-                onClick={handleAvatarClick}
-              >
-                <Avatar className="h-24 w-24">
-                  {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt={name || "User"} />
-                  ) : (
-                    <AvatarFallback className="bg-muted">
-                      <UserRound className="h-12 w-12 text-muted-foreground" />
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleFileChange}
+        <CardContent className="space-y-6">
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={profilePicture} alt={name} />
+              <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex items-center">
+              <Input
+                type="file"
+                id="picture"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={uploading}
               />
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Click to upload a profile picture
-                </p>
-              </div>
+              <label htmlFor="picture">
+                <Button 
+                  variant="outline" 
+                  className="cursor-pointer"
+                  disabled={uploading}
+                  asChild
+                >
+                  <span>
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      "Change Picture"
+                    )}
+                  </span>
+                </Button>
+              </label>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="email"
+                value={user.email || ""}
+                disabled
+                className="bg-muted"
+              />
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  value={user.email} 
-                  disabled 
-                  className="bg-muted/50"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  placeholder="Your name"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Input 
-                  id="bio" 
-                  value={bio} 
-                  onChange={(e) => setBio(e.target.value)} 
-                  placeholder="Tell us about yourself"
-                />
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Full Name
+              </label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+              />
             </div>
-          </CardContent>
-          <CardFooter>
+            
+            <div className="space-y-2">
+              <label htmlFor="bio" className="text-sm font-medium">
+                Bio
+              </label>
+              <Textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself"
+                className="min-h-[100px]"
+              />
+            </div>
+            
             <Button 
-              type="submit" 
+              onClick={handleUpdateProfile} 
               className="w-full bg-brand-purple hover:bg-brand-purple/90"
-              disabled={isUploading}
             >
-              {isUploading ? "Uploading..." : "Save Profile"}
+              Save Profile
             </Button>
-          </CardFooter>
-        </form>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

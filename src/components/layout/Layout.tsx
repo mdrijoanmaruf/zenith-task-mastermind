@@ -6,10 +6,12 @@ import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 export function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
 
   // On mobile, sidebar should be closed by default
   useEffect(() => {
@@ -23,9 +25,12 @@ export function Layout() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={cn(
+      "flex flex-col min-h-screen",
+      theme === 'dark' ? 'dark' : ''
+    )}>
       <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-      <div className="flex flex-1 pt-16"> {/* Added pt-16 to prevent overlap with header */}
+      <div className="flex flex-1" style={{ marginTop: '64px' }}> {/* Fixed height for header */}
         <Sidebar isOpen={isSidebarOpen} />
         <div 
           className={cn(
