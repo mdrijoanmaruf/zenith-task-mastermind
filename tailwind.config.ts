@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom task priority colors
+				priority: {
+					low: '#4ade80',    // Green
+					medium: '#facc15',  // Yellow
+					high: '#fb923c',    // Orange
+					urgent: '#f87171',  // Red
+				},
+				// Custom brand color
+				brand: {
+					purple: '#9b87f5',
+					dark: '#6E59A5',
+					light: '#E5DEFF',
 				}
 			},
 			borderRadius: {
